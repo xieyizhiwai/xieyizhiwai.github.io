@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    
+    <title>在minios上实现net dri | xieyizhiwai</title>
+    
+    
+        <meta property="og:site_name" content="xieyizhiwai">
+    
+    
+        <meta property="article:author" content="xieyizhiwai">
+    
+    
+        <link rel="icon" href="/favicon.ico">
+    
+    
+<link rel="stylesheet" href="/css/minireset.min.css">
+
+    
+<link rel="stylesheet" href="/css/all.min.css">
+
+    
+<link rel="stylesheet" href="/css/csshake.min.css">
+
+    
+<link rel="stylesheet" href="/css/hljs/lioshi.css">
+
+    
+<link rel="stylesheet" href="/css/jquery.fancybox.min.css">
+
+    
+<link rel="stylesheet" href="/styl/main.css">
+
+    
+<script src="/js/jquery.min.js"></script>
+
+    
+<script src="/js/highlight.min.js"></script>
+
+    
+<script src="/js/jquery.fancybox.min.js"></script>
+
+    
+<script src="/js/clipboard.min.js"></script>
+
+    
+<meta name="generator" content="Hexo 7.3.0"></head>
+<body>
+    <header>
+  <div class="outer">
+    <div class="inner">
+      <h1 class="logo-wrap">
+        <a>xieyizhiwai<b><sup>1.2</sup></b></a>
+      </h1>
+    </div>
+    <div class="inner">
+      <nav class="main-nav">
+        
+          
+            <a href="/">首页</a>
+          
+        
+          
+            <a href="/archives">归档</a>
+          
+        
+          
+            <a href="/categories">分类</a>
+          
+        
+          
+            <a href="/tags">标签</a>
+          
+        
+          
+            <a href="/friends">友链</a>
+          
+        
+          
+            <div class="dropdown">
+              <a class="dropbtn">相关链接</a>
+              <div class="dropdown-content">
+                
+                  <a href="/2020/07/16/3a6087ce/">文章</a>
+                
+                  <a target="_blank" rel="noopener" href="https://www.baidu.com">百度一下你就知道</a>
+                
+              </div>
+            </div>
+          
+        
+          
+            <a href="/about">关于</a>
+          
+        
+      </nav>
+    </div>
+  </div>
+</header>
+    <div class="content">
+        <section class="outer">
+    <article>
+        <div class="article-title">
+    <h2>
+        <a href="/2024/12/08/%E5%9C%A8minios%E4%B8%8A%E5%AE%9E%E7%8E%B0net-dri/" class="shake shake-little" title="在minios上实现net dri">
+            
+            在minios上实现net dri
+        </a>
+    </h2>
+    <div class="meta_box">
+    
+        
+        
+            
+                
+        
+        <div class="meta meta_auth">
+            <img src="/img/default.png" alt="head" />
+            <p>xieyizhiwai</p>
+        </div>
+    
+        
+        
+        <div class="meta meta_date">
+            <i class="fas fa-calendar-alt fa-fw" aria-hidden="true"></i>
+            <p>发布于：2024年12月08日</p>
+        </div>
+    
+        <div class="meta meta_update">
+            <i class="fas fa-edit fa-fw" aria-hidden="true"></i>
+            <p>更新于：2024年12月08日</p>
+        </div>
+    </div>
+    
+
+</div>
+
+        <hr>
+        <div class="article-entry">
+            
+            
+            
+            <h1 id="可行性验证"><a href="#可行性验证" class="headerlink" title="可行性验证"></a>可行性验证</h1><p>[TOC]</p>
+<h2 id="1、最终要求"><a href="#1、最终要求" class="headerlink" title="1、最终要求"></a>1、最终要求</h2><blockquote>
+<p>选题代号 <strong><code>drv-net</code></strong></p>
+</blockquote>
+<ol>
+<li>实现数据链路层驱动，使其能够向宿主机或其他终端发送 MAC 帧，目的终端应能够成功接收到数据并作出应答</li>
+<li>实现系统调用或其他形式的接口，使其能够动态配置网卡</li>
+<li>视自身情况，实现任意协议，使其能够与另一台终端相互收发数据</li>
+</ol>
+<p>说明：本任务自由度较高，测试程序按照实现情况进行编写，但由于本任务的成果看上去可能会比较单薄，所以请额外注重演示效果。</p>
+<p>[^助教的话；]: 你可以写个 PCI-E 接口的通用网卡驱动吗，PCI-E 的话你扫下 pci 总线的设备树后看看文档读写端口就行了，qemu 的话需要查一下配置配置个网络设备，硬件部分搞定后面可以接开源库，也可以按标准硬搓一遍</p>
+<h2 id="2、需求分析与验证"><a href="#2、需求分析与验证" class="headerlink" title="2、需求分析与验证"></a>2、需求分析与验证</h2><h3 id="尝试-qemu-中的网络连接"><a href="#尝试-qemu-中的网络连接" class="headerlink" title="尝试 qemu 中的网络连接"></a>尝试 qemu 中的网络连接</h3><p>首先配置一下，即可完成有网卡</p>
+<p>其次实现数据链路层驱动，使其能够向宿主机或其他终端发送 MAC 帧，可以在宿主机来验证，那么参数必须是宿主机能和虚拟操作系统通信 ？</p>
+<p>qemu 中配置个网络设备，然后查看是否配置成功</p>
+<p>TODO:扫描pci设备树以此查看已经有的设备</p>
+<h3 id="测试方案"><a href="#测试方案" class="headerlink" title="测试方案"></a>测试方案</h3><p>宿主机还是再来个虚拟机？</p>
+<h2 id="3、方案设计"><a href="#3、方案设计" class="headerlink" title="3、方案设计"></a>3、方案设计</h2><h3 id="配置qemu网络"><a href="#配置qemu网络" class="headerlink" title="配置qemu网络"></a>配置qemu网络</h3><p>加参数就行；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">,id=net0 -device e1000,netdev=net0 \</span><br><span class="line">	-monitor stdio</span><br></pre></td></tr></table></figure>
+
+<p>控制台显示设备如下；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(qemu) info network</span><br><span class="line">e1000.0: index=0,type=nic,model=e1000,macaddr=52:54:00:12:34:56</span><br><span class="line"> \ net0: index=0,type=user,net=10.0.2.0,restrict=off</span><br></pre></td></tr></table></figure>
+
+<p>现在只需要扫描设备写驱动就行</p>
+<h2 id="minios探索"><a href="#minios探索" class="headerlink" title="minios探索"></a>minios探索</h2><p>根据您提供的代码，这个简单的 <strong>shell</strong> 程序具备以下主要功能：</p>
+<hr>
+<h2 id="1-命令解析与参数处理"><a href="#1-命令解析与参数处理" class="headerlink" title="1. 命令解析与参数处理"></a>1. <strong>命令解析与参数处理</strong></h2><ul>
+<li><p><strong>功能</strong>：解析用户输入的命令字符串并将其分解为命令和参数。</p>
+</li>
+<li><p>细节</p>
+<p>：</p>
+<ul>
+<li>支持用空格分隔的命令行参数。</li>
+<li>支持引号 <code>&quot;</code> 或 <code>&#39;</code> 包裹的字符串（可以包含空格）。</li>
+<li>空参数、前后多余的空格都会被自动忽略。</li>
+<li>参数存储在动态分配的内存中，并在使用后释放。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="2-内置命令支持"><a href="#2-内置命令支持" class="headerlink" title="2. 内置命令支持"></a>2. <strong>内置命令支持</strong></h2><p>该 shell 提供了以下内置命令：</p>
+<h3 id="1-exit"><a href="#1-exit" class="headerlink" title="(1) exit"></a>(1) <strong>exit</strong></h3><ul>
+<li><strong>功能</strong>：退出 shell。</li>
+<li><strong>用法</strong>：<code>exit</code></li>
+</ul>
+<h3 id="2-parse-cmd"><a href="#2-parse-cmd" class="headerlink" title="(2) parse-cmd"></a>(2) <strong>parse-cmd</strong></h3><ul>
+<li><p><strong>功能</strong>：解析命令行输入并打印出解析后的命令及参数。</p>
+</li>
+<li><p>用法</p>
+<p>：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">parse-cmd some_command arg1 arg2</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>示例输出</p>
+<p>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">exec &#123;</span><br><span class="line">  command: &quot;some_command&quot;,</span><br><span class="line">  arguments: [</span><br><span class="line">    &quot;arg1&quot;,</span><br><span class="line">    &quot;arg2&quot;,</span><br><span class="line">  ],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="3-info"><a href="#3-info" class="headerlink" title="(3) info"></a>(3) <strong>info</strong></h3><ul>
+<li><p><strong>功能</strong>：打印指定的系统信息。</p>
+</li>
+<li><p><strong>用法</strong>：<code>info &lt;type&gt;</code></p>
+</li>
+<li><p>参数</p>
+<p>：</p>
+<ul>
+<li><code>env</code>：显示当前的环境变量列表。</li>
+<li><code>pid</code>：显示当前进程的 <code>pid</code> 和父进程 <code>ppid</code>。</li>
+<li><code>clock</code>：显示系统时钟相关信息，包括运行时长和时钟频率。</li>
+<li><code>help</code>：显示可用的 <code>info</code> 子命令。</li>
+</ul>
+</li>
+<li><p>示例</p>
+<p>：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">info env</span><br><span class="line">info pid</span><br><span class="line">info clock</span><br><span class="line">info help</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="4-echo"><a href="#4-echo" class="headerlink" title="(4) echo"></a>(4) <strong>echo</strong></h3><ul>
+<li><p><strong>功能</strong>：将参数逐行输出到屏幕上。</p>
+</li>
+<li><p><strong>用法</strong>：<code>echo &lt;args&gt;</code></p>
+</li>
+<li><p>示例</p>
+<p>：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo hello world</span><br></pre></td></tr></table></figure>
+
+<p>输出</p>
+<p>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hello  </span><br><span class="line">world  </span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="5-new-env"><a href="#5-new-env" class="headerlink" title="(5) new-env"></a>(5) <strong>new-env</strong></h3><ul>
+<li><p><strong>功能</strong>：设置新的环境变量。</p>
+</li>
+<li><p><strong>用法</strong>：<code>new-env VAR=VALUE</code></p>
+</li>
+<li><p>示例</p>
+<p>：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new-env PATH=/usr/bin</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="6-sync"><a href="#6-sync" class="headerlink" title="(6) sync"></a>(6) <strong>sync</strong></h3><ul>
+<li><p><strong>功能</strong>：启用或禁用屏幕同步锁机制。</p>
+</li>
+<li><p>用法</p>
+<p>：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sync enable</span><br><span class="line">sync disable</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>细节</p>
+<p>：</p>
+<ul>
+<li>启用时会初始化屏幕同步锁。</li>
+<li>禁用时会销毁该锁。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="3-外部命令执行"><a href="#3-外部命令执行" class="headerlink" title="3. 外部命令执行"></a>3. <strong>外部命令执行</strong></h2><ul>
+<li><p><strong>功能</strong>：尝试执行非内置命令（即外部程序）。</p>
+</li>
+<li><p>实现</p>
+<p>：</p>
+<ul>
+<li>使用 <code>fork</code> 创建子进程。</li>
+<li>子进程调用 <code>execve</code> 尝试执行外部程序。</li>
+<li>如果命令找不到（<code>execve</code> 返回错误码），打印未知命令的提示。</li>
+</ul>
+</li>
+<li><p>示例</p>
+<p>：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/bin/ls</span><br><span class="line">/usr/bin/python3</span><br></pre></td></tr></table></figure></li>
+</ul>
+<hr>
+<h2 id="4-错误与边界情况处理"><a href="#4-错误与边界情况处理" class="headerlink" title="4. 错误与边界情况处理"></a>4. <strong>错误与边界情况处理</strong></h2><ul>
+<li><p><strong>不完整的引号检测</strong>：输入包含不匹配的引号时会触发 <code>assert</code> 失败。</p>
+</li>
+<li><p>未知命令处理</p>
+<p>：当无法识别或执行某个命令时，会显示提示信息：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">unknown command: `some_command`</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>参数分配内存管理</strong>：使用动态内存分配处理参数，确保在命令执行后释放内存。</p>
+</li>
+</ul>
+<hr>
+<h2 id="5-用户交互与命令行提示"><a href="#5-用户交互与命令行提示" class="headerlink" title="5. 用户交互与命令行提示"></a>5. <strong>用户交互与命令行提示</strong></h2><ul>
+<li><strong>输入提示</strong>：<code>unios$</code></li>
+<li><strong>获取用户输入</strong>：使用 <code>gets</code> 读取用户的命令。</li>
+</ul>
+<hr>
+
+            <div class="article-copyright">
+                
+    <blockquote>
+        <p>
+            版权声明：本文为「xieyizhiwai」的原创文章，博客内容遵循 署名-非商业性使用-相同方式共享 协议。
+        </p>
+    </blockquote>
+
+
+            </div>
+        </div>
+    </article>
+    
+
+    <section id="toc-div" >
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%AF%E8%A1%8C%E6%80%A7%E9%AA%8C%E8%AF%81"><span class="toc-text">可行性验证</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81%E6%9C%80%E7%BB%88%E8%A6%81%E6%B1%82"><span class="toc-text">1、最终要求</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81%E9%9C%80%E6%B1%82%E5%88%86%E6%9E%90%E4%B8%8E%E9%AA%8C%E8%AF%81"><span class="toc-text">2、需求分析与验证</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B0%9D%E8%AF%95-qemu-%E4%B8%AD%E7%9A%84%E7%BD%91%E7%BB%9C%E8%BF%9E%E6%8E%A5"><span class="toc-text">尝试 qemu 中的网络连接</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E6%96%B9%E6%A1%88"><span class="toc-text">测试方案</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3%E3%80%81%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1"><span class="toc-text">3、方案设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AEqemu%E7%BD%91%E7%BB%9C"><span class="toc-text">配置qemu网络</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#minios%E6%8E%A2%E7%B4%A2"><span class="toc-text">minios探索</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%91%BD%E4%BB%A4%E8%A7%A3%E6%9E%90%E4%B8%8E%E5%8F%82%E6%95%B0%E5%A4%84%E7%90%86"><span class="toc-text">1. 命令解析与参数处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%86%85%E7%BD%AE%E5%91%BD%E4%BB%A4%E6%94%AF%E6%8C%81"><span class="toc-text">2. 内置命令支持</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-exit"><span class="toc-text">(1) exit</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-parse-cmd"><span class="toc-text">(2) parse-cmd</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-info"><span class="toc-text">(3) info</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-echo"><span class="toc-text">(4) echo</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-new-env"><span class="toc-text">(5) new-env</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-sync"><span class="toc-text">(6) sync</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%A4%96%E9%83%A8%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C"><span class="toc-text">3. 外部命令执行</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E9%94%99%E8%AF%AF%E4%B8%8E%E8%BE%B9%E7%95%8C%E6%83%85%E5%86%B5%E5%A4%84%E7%90%86"><span class="toc-text">4. 错误与边界情况处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E7%94%A8%E6%88%B7%E4%BA%A4%E4%BA%92%E4%B8%8E%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%8F%90%E7%A4%BA"><span class="toc-text">5. 用户交互与命令行提示</span></a></li></ol></li></ol>
+    </section>
+    <section id="gohome" style="display: none;"><a><i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i></a></section>
+
+
+</section>
+    </div>
+    <footer>
+    <div class="outer">
+        <div class="inner">
+            Powered by <a href="https://github.com/hdxw/hexo-theme-prowiki" target="_blank">ProWiki</a>
+            &copy;2024 xieyizhiwai<br>
+            <a target="_blank" rel="noopener" href="http://beian.miit.gov.cn/"></a>
+            <div style="height: 50px;"></div>
+        </div>
+    </div>
+</footer>
+
+<script src="/js/custom.js"></script>
+
+
+    <script>onload_content();</script>
+
+</body>
+</html>
