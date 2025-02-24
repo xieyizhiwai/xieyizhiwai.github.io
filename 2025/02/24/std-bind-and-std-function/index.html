@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    
+    <title>std::bind and std::function | xieyizhiwai</title>
+    
+    
+        <meta property="og:site_name" content="xieyizhiwai">
+    
+    
+        <meta property="article:author" content="xieyizhiwai">
+    
+    
+        <link rel="icon" href="/favicon.ico">
+    
+    
+<link rel="stylesheet" href="/css/minireset.min.css">
+
+    
+<link rel="stylesheet" href="/css/all.min.css">
+
+    
+<link rel="stylesheet" href="/css/csshake.min.css">
+
+    
+<link rel="stylesheet" href="/css/hljs/lioshi.css">
+
+    
+<link rel="stylesheet" href="/css/jquery.fancybox.min.css">
+
+    
+<link rel="stylesheet" href="/styl/main.css">
+
+    
+<script src="/js/jquery.min.js"></script>
+
+    
+<script src="/js/highlight.min.js"></script>
+
+    
+<script src="/js/jquery.fancybox.min.js"></script>
+
+    
+<script src="/js/clipboard.min.js"></script>
+
+    
+<meta name="generator" content="Hexo 7.3.0"></head>
+<body>
+    <header>
+  <div class="outer">
+    <div class="inner">
+      <h1 class="logo-wrap">
+        <a>xieyizhiwai<b><sup>1.2</sup></b></a>
+      </h1>
+    </div>
+    <div class="inner">
+      <nav class="main-nav">
+        
+          
+            <a href="/">首页</a>
+          
+        
+          
+            <a href="/archives">归档</a>
+          
+        
+          
+            <a href="/categories">分类</a>
+          
+        
+          
+            <a href="/tags">标签</a>
+          
+        
+          
+            <a href="/friends">友链</a>
+          
+        
+          
+            <div class="dropdown">
+              <a class="dropbtn">相关链接</a>
+              <div class="dropdown-content">
+                
+                  <a href="/2020/07/16/3a6087ce/">文章</a>
+                
+                  <a target="_blank" rel="noopener" href="https://www.baidu.com">百度一下你就知道</a>
+                
+              </div>
+            </div>
+          
+        
+          
+            <a href="/about">关于</a>
+          
+        
+      </nav>
+    </div>
+  </div>
+</header>
+    <div class="content">
+        <section class="outer">
+    <article>
+        <div class="article-title">
+    <h2>
+        <a href="/2025/02/24/std-bind-and-std-function/" class="shake shake-little" title="std::bind and std::function">
+            
+            std::bind and std::function
+        </a>
+    </h2>
+    <div class="meta_box">
+    
+        
+        
+            
+                
+        
+        <div class="meta meta_auth">
+            <img src="/img/default.png" alt="head" />
+            <p>xieyizhiwai</p>
+        </div>
+    
+        
+        
+        <div class="meta meta_date">
+            <i class="fas fa-calendar-alt fa-fw" aria-hidden="true"></i>
+            <p>发布于：2025年02月24日</p>
+        </div>
+    
+        <div class="meta meta_update">
+            <i class="fas fa-edit fa-fw" aria-hidden="true"></i>
+            <p>更新于：2025年02月24日</p>
+        </div>
+    </div>
+    
+
+</div>
+
+        <hr>
+        <div class="article-entry">
+            
+            
+            
+            <p>[TOC]</p>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a><strong>概述</strong></h2><p>目前在开发的过程中碰到了一个问题，我需要大恒SDK中的一个回调函数能够修改类成员函数，除了在把类指针传入外，我还在开源以及祖宗的代码中发现了新的写法。同时我也希望能够借此机会搞会std::bind and std::function，具体如下；</p>
+<p>静态函数原型；</p>
+<p>GXRegisterCaptureCallback</p>
+<p>声明：<br>GX_API GXRegisterCaptureCallback (GX_DEV_HANDLE hDevice,void *pUserParam,GXCaptureCallBack callBackFun)</p>
+<p>意义：<br>注册采集回调函数，与 GXUnregisterCaptureCallback 接口对应。</p>
+<p>形参：<br>[in]hDevice 设备句柄<br>[in]pUserParam 指向用户将在回调处理函数中使用的私有数据指针<br>[in]callBackFun 用户将要注册的回调处理函数，函数类型参见 GXCaptureCallBack</p>
+<p>返回值：<br>GX_STATUS_SUCCESS操作成功，没有发生错误<br>GX_STATUS_NOT_INIT_API没有调用GXInitLib初始化库<br>GX_STATUS_INVALID_HANDLE用户传入非法的句柄<br>GX_STATUS_INVALID_PARAMETER 用户传入指针为NULL<br>GX_STATUS_INVALID_CALL</p>
+<p>typedef void (GX_STDC * GXCaptureCallBack) (GX_FRAME_CALLBACK_PARAM *pFrameData)</p>
+<h3 id="代码中的处理"><a href="#代码中的处理" class="headerlink" title="代码中的处理"></a><strong>代码中的处理</strong></h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Callback Wrapper for adapting GxAPI&#x27;s interface;</span></span><br><span class="line"><span class="type">static</span> std::function&lt;<span class="type">void</span> GX_STDC(GX_FRAME_CALLBACK_PARAM *)&gt; g_callback_left;</span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="function"><span class="type">void</span> GX_STDC <span class="title">CallbackWrapperLeft</span><span class="params">(GX_FRAME_CALLBACK_PARAM *arg)</span> </span>&#123;</span><br><span class="line"><span class="keyword">if</span> (g_callback_left) &#123;</span><br><span class="line"><span class="built_in">g_callback_left</span>(arg);</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> std::function&lt;<span class="type">void</span> GX_STDC(GX_FRAME_CALLBACK_PARAM *)&gt; g_callback_right;</span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="function"><span class="type">void</span> GX_STDC <span class="title">CallbackWrapperRight</span><span class="params">(GX_FRAME_CALLBACK_PARAM *arg)</span> </span>&#123;</span><br><span class="line"><span class="keyword">if</span> (g_callback_right) &#123;</span><br><span class="line"><span class="built_in">g_callback_right</span>(arg);</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">g_callback_right = std::<span class="built_in">bind</span>(&amp;DahengCameraNode::onFrameCallbackFunRight, <span class="keyword">this</span>, std::placeholders::_1);</span><br><span class="line">m_gxStatus = <span class="built_in">GXRegisterCaptureCallback</span>(m_devHandleRight, <span class="literal">nullptr</span>, CallbackWrapperRight);</span><br><span class="line">这里为什么要这么处理</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line"><span class="comment">//其中 onFrameCallbackFunRight 会访问类成员函数</span></span><br></pre></td></tr></table></figure>
+
+<p>这段代码的核心目的是将 C++ 的成员函数（<code>DahengCameraNode::onFrameCallbackFunRight</code>）适配到 C 风格的函数指针回调机制中。这种处理方式在混合使用 C 和 C++ 代码时非常常见，尤其是在使用第三方库（如大恒相机的 GXAPI）时。</p>
+<hr>
+<h3 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a><strong>问题背景</strong></h3><ol>
+<li><p><strong>GXAPI 的回调机制</strong>：</p>
+<p>GXAPI 是一个 C 语言编写的库，它使用 C 风格的回调函数（函数指针）来处理相机捕获的帧数据。</p>
+<p>例如，<code>GXRegisterCaptureCallback</code> 函数需要一个 C 风格的回调函数指针作为参数。</p>
+</li>
+<li><p><strong>C++ 的成员函数</strong>：</p>
+<p>C++ 的成员函数（如 <code>DahengCameraNode::onFrameCallbackFunRight</code>）不能直接作为 C 风格的回调函数使用，因为成员函数有一个隐式的 <code>this</code> 指针参数。</p>
+</li>
+<li><p><strong>适配需求</strong>：</p>
+<p>需要将 C++ 的成员函数适配到 C 风格的回调函数中，同时保留对 <code>this</code> 指针的访问。</p>
+</li>
+</ol>
+<hr>
+<h3 id="代码解析"><a href="#代码解析" class="headerlink" title="代码解析"></a><strong>代码解析</strong></h3><h4 id="1-定义回调包装器"><a href="#1-定义回调包装器" class="headerlink" title="1. 定义回调包装器"></a><strong>1. 定义回调包装器</strong></h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> std::function&lt;<span class="type">void</span> GX_STDC(GX_FRAME_CALLBACK_PARAM *)&gt; g_callback_left;</span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="function"><span class="type">void</span> GX_STDC <span class="title">CallbackWrapperLeft</span><span class="params">(GX_FRAME_CALLBACK_PARAM *arg)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (g_callback_left) &#123;</span><br><span class="line">    <span class="built_in">g_callback_left</span>(arg);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>**<code>g_callback_left</code>**：</p>
+<p>这是一个 <code>std::function</code> 对象，用于存储 C++ 的回调函数。</p>
+<p><code>std::function</code> 是一个通用的函数包装器，可以存储任何可调用对象（如函数指针、Lambda 表达式、成员函数等）。</p>
+</li>
+<li><p>**<code>CallbackWrapperLeft</code>**：</p>
+<p>这是一个 C 风格的回调函数，符合 GXAPI 的要求。</p>
+<p>它通过调用 <code>g_callback_left</code> 来间接调用 C++ 的回调函数。</p>
+</li>
+<li><p>**<code>extern &quot;C&quot;</code>**：</p>
+<p>用于告诉编译器以 C 语言的方式编译这个函数，避免 C++ 的名称修饰（name mangling），从而使其可以作为 C 风格的回调函数使用。</p>
+</li>
+</ul>
+<h4 id="2-绑定成员函数到回调包装器"><a href="#2-绑定成员函数到回调包装器" class="headerlink" title="2. 绑定成员函数到回调包装器"></a><strong>2. 绑定成员函数到回调包装器</strong></h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">g_callback_right = std::<span class="built_in">bind</span>(&amp;DahengCameraNode::onFrameCallbackFunRight, <span class="keyword">this</span>, std::placeholders::_1);</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>**<code>std::bind</code>**：</p>
+<p>将成员函数 <code>DahengCameraNode::onFrameCallbackFunRight</code> 绑定到 <code>g_callback_right</code>。</p>
+<p><code>this</code> 是当前对象的指针，<code>std::placeholders::_1</code> 表示回调函数的第一个参数（即 <code>GX_FRAME_CALLBACK_PARAM *arg</code>）。</p>
+</li>
+<li><p>**<code>g_callback_right</code>**：</p>
+<p>现在 <code>g_callback_right</code> 存储了一个可调用对象，它会在被调用时执行 <code>DahengCameraNode::onFrameCallbackFunRight</code>。</p>
+</li>
+</ul>
+<h4 id="3-注册回调函数"><a href="#3-注册回调函数" class="headerlink" title="3. 注册回调函数"></a><strong>3. 注册回调函数</strong></h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">m_gxStatus = <span class="built_in">GXRegisterCaptureCallback</span>(m_devHandleRight, <span class="literal">nullptr</span>, CallbackWrapperRight);</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>**<code>GXRegisterCaptureCallback</code>**：</p>
+<p>这是 GXAPI 提供的函数，用于注册捕获帧数据的回调函数。</p>
+<p><code>CallbackWrapperRight</code> 是 C 风格的回调函数，它会在相机捕获到帧数据时被调用。</p>
+</li>
+<li><p>**<code>CallbackWrapperRight</code>**：</p>
+<p>当 GXAPI 调用 <code>CallbackWrapperRight</code> 时，<code>CallbackWrapperRight</code> 会调用 <code>g_callback_right</code>，而 <code>g_callback_right</code> 又会调用 <code>DahengCameraNode::onFrameCallbackFunRight</code>。</p>
+</li>
+</ul>
+<p>这样的话，调用<code>CallbackWrapperRight</code>函数之后，就可以调DahengCameraNode::onFrameCallbackFunRight同时可以访问类成员。</p>
+<h3 id="std-bind-and-std-function"><a href="#std-bind-and-std-function" class="headerlink" title="std::bind and std::function"></a>std::bind and std::<strong>function</strong></h3><h4 id="1-配合操纵类"><a href="#1-配合操纵类" class="headerlink" title="1.配合操纵类"></a>1.配合操纵类</h4><p>因为类成员函数都有一个默认的参数，this，作为第一个参数，这就导致了类成员函数不能直接赋值给<code>std::function</code>，这时候我们就需要<code>std::bind</code>了，简言之，<code>std::bind</code>的作用就是转换函数签名，将缺少的参数补上，将多了的参数去掉，甚至还可以交换原来函数参数的位置。</p>
+<h4 id="2-std-function与std-bind实现函数回调功能"><a href="#2-std-function与std-bind实现函数回调功能" class="headerlink" title="2.std::function与std::bind实现函数回调功能"></a>2.std::function与std::bind实现函数回调功能</h4><p>可以使用这个实现回调函数。最典型的就是qt中的信号和槽了，信号类发布信号，槽函数响应。先画个todo在这里，利用这两个实现一手类似于 ros2 的订阅发布模式。</p>
+
+            <div class="article-copyright">
+                
+    <blockquote>
+        <p>
+            版权声明：本文为「xieyizhiwai」的原创文章，博客内容遵循 署名-非商业性使用-相同方式共享 协议。
+        </p>
+    </blockquote>
+
+
+            </div>
+        </div>
+    </article>
+    
+
+    <section id="toc-div" >
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A6%82%E8%BF%B0"><span class="toc-text">概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E4%B8%AD%E7%9A%84%E5%A4%84%E7%90%86"><span class="toc-text">代码中的处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF"><span class="toc-text">问题背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="toc-text">代码解析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E5%AE%9A%E4%B9%89%E5%9B%9E%E8%B0%83%E5%8C%85%E8%A3%85%E5%99%A8"><span class="toc-text">1. 定义回调包装器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E7%BB%91%E5%AE%9A%E6%88%90%E5%91%98%E5%87%BD%E6%95%B0%E5%88%B0%E5%9B%9E%E8%B0%83%E5%8C%85%E8%A3%85%E5%99%A8"><span class="toc-text">2. 绑定成员函数到回调包装器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E6%B3%A8%E5%86%8C%E5%9B%9E%E8%B0%83%E5%87%BD%E6%95%B0"><span class="toc-text">3. 注册回调函数</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#std-bind-and-std-function"><span class="toc-text">std::bind and std::function</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E9%85%8D%E5%90%88%E6%93%8D%E7%BA%B5%E7%B1%BB"><span class="toc-text">1.配合操纵类</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-std-function%E4%B8%8Estd-bind%E5%AE%9E%E7%8E%B0%E5%87%BD%E6%95%B0%E5%9B%9E%E8%B0%83%E5%8A%9F%E8%83%BD"><span class="toc-text">2.std::function与std::bind实现函数回调功能</span></a></li></ol></li></ol></li></ol>
+    </section>
+    <section id="gohome" style="display: none;"><a><i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i></a></section>
+
+
+</section>
+    </div>
+    <footer>
+    <div class="outer">
+        <div class="inner">
+            Powered by <a href="https://github.com/hdxw/hexo-theme-prowiki" target="_blank">ProWiki</a>
+            &copy;2025 xieyizhiwai<br>
+            <a target="_blank" rel="noopener" href="http://beian.miit.gov.cn/"></a>
+            <div style="height: 50px;"></div>
+        </div>
+    </div>
+</footer>
+
+<script src="/js/custom.js"></script>
+
+
+    <script>onload_content();</script>
+
+</body>
+</html>

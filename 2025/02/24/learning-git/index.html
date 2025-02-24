@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    
+    <title>learning git | xieyizhiwai</title>
+    
+    
+        <meta property="og:site_name" content="xieyizhiwai">
+    
+    
+        <meta property="article:author" content="xieyizhiwai">
+    
+    
+        <link rel="icon" href="/favicon.ico">
+    
+    
+<link rel="stylesheet" href="/css/minireset.min.css">
+
+    
+<link rel="stylesheet" href="/css/all.min.css">
+
+    
+<link rel="stylesheet" href="/css/csshake.min.css">
+
+    
+<link rel="stylesheet" href="/css/hljs/lioshi.css">
+
+    
+<link rel="stylesheet" href="/css/jquery.fancybox.min.css">
+
+    
+<link rel="stylesheet" href="/styl/main.css">
+
+    
+<script src="/js/jquery.min.js"></script>
+
+    
+<script src="/js/highlight.min.js"></script>
+
+    
+<script src="/js/jquery.fancybox.min.js"></script>
+
+    
+<script src="/js/clipboard.min.js"></script>
+
+    
+<meta name="generator" content="Hexo 7.3.0"></head>
+<body>
+    <header>
+  <div class="outer">
+    <div class="inner">
+      <h1 class="logo-wrap">
+        <a>xieyizhiwai<b><sup>1.2</sup></b></a>
+      </h1>
+    </div>
+    <div class="inner">
+      <nav class="main-nav">
+        
+          
+            <a href="/">首页</a>
+          
+        
+          
+            <a href="/archives">归档</a>
+          
+        
+          
+            <a href="/categories">分类</a>
+          
+        
+          
+            <a href="/tags">标签</a>
+          
+        
+          
+            <a href="/friends">友链</a>
+          
+        
+          
+            <div class="dropdown">
+              <a class="dropbtn">相关链接</a>
+              <div class="dropdown-content">
+                
+                  <a href="/2020/07/16/3a6087ce/">文章</a>
+                
+                  <a target="_blank" rel="noopener" href="https://www.baidu.com">百度一下你就知道</a>
+                
+              </div>
+            </div>
+          
+        
+          
+            <a href="/about">关于</a>
+          
+        
+      </nav>
+    </div>
+  </div>
+</header>
+    <div class="content">
+        <section class="outer">
+    <article>
+        <div class="article-title">
+    <h2>
+        <a href="/2025/02/24/learning-git/" class="shake shake-little" title="learning git">
+            
+            learning git
+        </a>
+    </h2>
+    <div class="meta_box">
+    
+        
+        
+            
+                
+        
+        <div class="meta meta_auth">
+            <img src="/img/default.png" alt="head" />
+            <p>xieyizhiwai</p>
+        </div>
+    
+        
+        
+        <div class="meta meta_date">
+            <i class="fas fa-calendar-alt fa-fw" aria-hidden="true"></i>
+            <p>发布于：2025年02月24日</p>
+        </div>
+    
+        <div class="meta meta_update">
+            <i class="fas fa-edit fa-fw" aria-hidden="true"></i>
+            <p>更新于：2025年02月24日</p>
+        </div>
+    </div>
+    
+
+</div>
+
+        <hr>
+        <div class="article-entry">
+            
+            
+            
+            <h1 id="learning-Git"><a href="#learning-Git" class="headerlink" title="learning Git"></a>learning Git</h1><p>[TOC]</p>
+<p>目前我视觉组的项目是一个主仓库，多个子仓库的架构，但是我作为一个git新手，在删除一个模块时候需要删除这个子仓库，这时候我选择直接删除了文件夹，之后的git commit就出现了问题，因此我这里给出正确步骤（我自己执行过可行的，但是不保证是最优解）</p>
+<h3 id="如何彻底删除-Git-Submodule：详细步骤与注意事项"><a href="#如何彻底删除-Git-Submodule：详细步骤与注意事项" class="headerlink" title="如何彻底删除 Git Submodule：详细步骤与注意事项"></a>如何彻底删除 Git Submodule：详细步骤与注意事项</h3><p>Git Submodule 是一个非常有用的功能，它允许你将一个 Git 仓库作为另一个 Git 仓库的子目录。这种机制非常适合管理依赖项或共享代码库。然而，随着项目的发展，某些 Submodule 可能不再需要，或者你可能希望用其他方式管理依赖项。在这种情况下，彻底删除 Submodule 就变得非常重要。本文将详细介绍如何安全、彻底地删除 Git Submodule，并解释每个步骤的注意事项。</p>
+<h2 id="删除-Submodule-的步骤"><a href="#删除-Submodule-的步骤" class="headerlink" title="删除 Submodule 的步骤"></a>删除 Submodule 的步骤</h2><p>彻底删除 Git Submodule 需要多个步骤，以下是详细的操作流程：</p>
+<h3 id="1-删除-Submodule-缓存"><a href="#1-删除-Submodule-缓存" class="headerlink" title="1. 删除 Submodule 缓存"></a>1. 删除 Submodule 缓存</h3><p>在删除 Submodule 之前，首先需要暂存 <code>.gitmodules</code> 文件。这是因为 Git 会检查该文件的状态，如果未暂存，Git 会报错并提示你暂存或 stash 更改。</p>
+<p>使用以下命令暂存 <code>.gitmodules</code> 文件并移除 Submodule 的缓存：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git add .gitmodules</span><br><span class="line">git <span class="built_in">rm</span> --cached submodule_name</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li><code>submodule_name</code> 是你要删除的 Submodule 的名称。</li>
+<li><code>git rm --cached</code> 命令会将 Submodule 从 Git 的索引中移除，但不会删除工作目录中的文件。</li>
+</ul>
+<hr>
+<h3 id="2-删除-Submodule-目录"><a href="#2-删除-Submodule-目录" class="headerlink" title="2. 删除 Submodule 目录"></a>2. 删除 Submodule 目录</h3><p>接下来，你需要手动删除 Submodule 的目录：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">rm</span> -rf submodule_name</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>这个命令会递归地删除 Submodule 目录及其所有内容。</li>
+<li>如果你不确定是否要删除这些文件，可以先备份。</li>
+</ul>
+<hr>
+<h3 id="3-修改-gitmodules-文件"><a href="#3-修改-gitmodules-文件" class="headerlink" title="3. 修改 .gitmodules 文件"></a>3. 修改 <code>.gitmodules</code> 文件</h3><p><code>.gitmodules</code> 文件中包含了所有 Submodule 的配置信息。你需要手动编辑这个文件，移除对应的 Submodule 信息。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim .gitmodules</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>如果只有一个 Submodule，你可以直接删除 <code>.gitmodules</code> 文件。</li>
+<li>确保在编辑 <code>.gitmodules</code> 文件时不要留下任何语法错误，否则可能会导致 Git 操作失败。</li>
+</ul>
+<hr>
+<h3 id="4-删除-git-modules-中的-Submodule-目录"><a href="#4-删除-git-modules-中的-Submodule-目录" class="headerlink" title="4. 删除 .git/modules 中的 Submodule 目录"></a>4. 删除 <code>.git/modules</code> 中的 Submodule 目录</h3><p>Git 会将 Submodule 的元数据存储在 <code>.git/modules</code> 目录中。你需要手动删除对应的 Submodule 目录：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">rm</span> -rf .git/modules/submodule_name</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>这个目录包含了 Submodule 的 Git 仓库信息，删除它会彻底移除 Submodule 的所有 Git 记录。</li>
+<li>如果你不确定要删除哪个目录，可以先查看 <code>.git/modules</code> 目录中的内容。</li>
+</ul>
+<hr>
+<h3 id="5-修改-git-config-文件"><a href="#5-修改-git-config-文件" class="headerlink" title="5. 修改 .git/config 文件"></a>5. 修改 <code>.git/config</code> 文件</h3><p>最后，你需要编辑 <code>.git/config</code> 文件，移除与 Submodule 相关的配置信息：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim .git/config</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>在 <code>.git/config</code> 文件中，Submodule 的配置通常位于 <code>[submodule &quot;submodule_name&quot;]</code> 部分。</li>
+<li>确保只删除与你要移除的 Submodule 相关的配置，不要误删其他配置。</li>
+</ul>
+<hr>
+<h2 id="完整示例"><a href="#完整示例" class="headerlink" title="完整示例"></a>完整示例</h2><p>假设我们有一个名为 <code>my_project</code> 的仓库，并添加了一个 Submodule <code>my_submodule</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git submodule add https://github.com/example/my_submodule.git</span><br></pre></td></tr></table></figure>
+
+<p>现在，我们需要删除这个 Submodule。按照以下步骤操作：</p>
+<ol>
+<li><p>暂存 <code>.gitmodules</code> 文件并移除 Submodule 缓存：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git add .gitmodules</span><br><span class="line">git <span class="built_in">rm</span> --cached my_submodule</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>删除 Submodule 目录：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">rm</span> -rf my_submodule</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>编辑 <code>.gitmodules</code> 文件，移除 <code>my_submodule</code> 的相关配置。</p>
+</li>
+<li><p>删除 <code>.git/modules/my_submodule</code> 目录：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">rm</span> -rf .git/modules/my_submodule</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>编辑 <code>.git/config</code> 文件，移除 <code>[submodule &quot;my_submodule&quot;]</code> 部分。</p>
+</li>
+</ol>
+<p>完成以上步骤后，<code>my_submodule</code> 已从项目中彻底删除。</p>
+<hr>
+<h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><ul>
+<li>如果你在删除 Submodule 后仍然遇到 Git 报错，可能是因为某些缓存或配置未完全清理。可以尝试运行 <code>git status</code> 检查状态，或者使用 <code>git gc</code> 清理不必要的文件。</li>
+<li>为了验证 Submodule 是否已彻底删除，可以运行 <code>git submodule status</code> 查看当前 Submodule 的状态。如果没有任何输出，说明 Submodule 已成功删除。</li>
+</ul>
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>彻底删除 Git Submodule 可能需要多个步骤，但通过遵循本文的指导，你可以安全、高效地完成这一任务。</p>
+
+            <div class="article-copyright">
+                
+    <blockquote>
+        <p>
+            版权声明：本文为「xieyizhiwai」的原创文章，博客内容遵循 署名-非商业性使用-相同方式共享 协议。
+        </p>
+    </blockquote>
+
+
+            </div>
+        </div>
+    </article>
+    
+
+    <section id="toc-div" >
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#learning-Git"><span class="toc-text">learning Git</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E5%BD%BB%E5%BA%95%E5%88%A0%E9%99%A4-Git-Submodule%EF%BC%9A%E8%AF%A6%E7%BB%86%E6%AD%A5%E9%AA%A4%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-text">如何彻底删除 Git Submodule：详细步骤与注意事项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A0%E9%99%A4-Submodule-%E7%9A%84%E6%AD%A5%E9%AA%A4"><span class="toc-text">删除 Submodule 的步骤</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%88%A0%E9%99%A4-Submodule-%E7%BC%93%E5%AD%98"><span class="toc-text">1. 删除 Submodule 缓存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%88%A0%E9%99%A4-Submodule-%E7%9B%AE%E5%BD%95"><span class="toc-text">2. 删除 Submodule 目录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%BF%AE%E6%94%B9-gitmodules-%E6%96%87%E4%BB%B6"><span class="toc-text">3. 修改 .gitmodules 文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%88%A0%E9%99%A4-git-modules-%E4%B8%AD%E7%9A%84-Submodule-%E7%9B%AE%E5%BD%95"><span class="toc-text">4. 删除 .git&#x2F;modules 中的 Submodule 目录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E4%BF%AE%E6%94%B9-git-config-%E6%96%87%E4%BB%B6"><span class="toc-text">5. 修改 .git&#x2F;config 文件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E7%A4%BA%E4%BE%8B"><span class="toc-text">完整示例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-text">注意事项</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li></ol></li></ol>
+    </section>
+    <section id="gohome" style="display: none;"><a><i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i></a></section>
+
+
+</section>
+    </div>
+    <footer>
+    <div class="outer">
+        <div class="inner">
+            Powered by <a href="https://github.com/hdxw/hexo-theme-prowiki" target="_blank">ProWiki</a>
+            &copy;2025 xieyizhiwai<br>
+            <a target="_blank" rel="noopener" href="http://beian.miit.gov.cn/"></a>
+            <div style="height: 50px;"></div>
+        </div>
+    </div>
+</footer>
+
+<script src="/js/custom.js"></script>
+
+
+    <script>onload_content();</script>
+
+</body>
+</html>
